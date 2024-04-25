@@ -117,10 +117,37 @@ ggplot(combined_data, aes(x = RT, y = Frequency)) +
 ```
 The regression model above clearly shows a positive relationship between a character's Mean Response Time and Frequency in the corpus—as a character's frequency ranking rises, it's mean response time among participants also increases. This suggests the less frequent a character is, the less identifiable it is. This notion of recognizability is not a novel discovery, but suggests that the study is accurate in this sense.
 
+But what about accuracy versus frequency?
+
+```{r}
+
+ggplot(combined_data, aes(x = Frequency, y = Acc)) +
+  geom_point(col = "skyblue") + 
+  labs(title = "Accuracy vs. Frequency",
+       x = "Frequency",
+       y = "Accuracy") +
+  geom_smooth()
+
+```
+
+The accuracy rating for the first 2000 or so most frequent characters seems to be constant, floating around the 1.00 range, but seems to drop off as characters become less frequent. Perhaps there is a reason certain characters are more frequent than others. 
+
+The Chinese Language Database (Frequency) provides lots of useful lexical properties of characters such as radical, semantic meaning, stroke count, and tone. This information is especially helpful when paired with the data gathered from the Chinese Lexicon Project. We have found that less common characters resulted in slower response times in the study. Furhter, perhaps the complexity of a character also influences respondent's response times. 
+
+```{r}
+
+combined_data %>%
+  filter(Stroke_Count > "5") %>%
+  ggplot(aes(x = Stroke_Count, y = Frequency)) +
+  geom_point()
+  
+combined_data %>%
+  filter(Stroke_Count < "19") %>%
+  ggplot(aes(x = Stroke_Count, y = Frequency)) +
+  geom_point() 
 
 
-
-
+```
 
 
 
