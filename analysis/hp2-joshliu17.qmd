@@ -9,13 +9,14 @@ editor: visual
 
 The Mandarin Chinese language, with roots that date back thousands of years, is complex but beautiful language. As a logographic language, Chinese characters represent one of the oldest continuously used systems of writing in the world, and is currently used as a communicative medium by almost one fifth of the world’s population. While other languages using phonetic alphabets have undergone radical changes through time, Mandarin Chinese exhibits remarkable continuity which holds profound meaning and tradition for those who speak it. As a native English speaker and a Chinese language student here at the University of Michigan, I have experienced, first-hand, the difference in cognitive processing of symbolic characters versus alphabetic letters, and the difficulties of learning a logographic language. Given the language’s wide usage, lack of research as compared to alphabetic languages, and connection to my personal and academic journey, it is useful to gain a better understanding of it.
 
-Using a lexical decision task, where participants had to discriminate between real Chinese characters and pseudocharacters via button presses, The "Chinese Lexicon Project" provides a valuable database of behavioral responses (reaction times and accuracy) for lexical processing of single Chinese characters. Through analysis of this study's lexical processing data, as well as an alternative study's data on the frequency of Chinese characters, I hope to answer several questions including (1) the relationship between character frequency and lexical decision reaction times, (2) how various lexical properties of characters (e.g., number of strokes, phonetic/semantic radical, number of meanings, etc.) influence lexical decision latencies, (3) the correlation between semantic meaning and response time, and (4) whether or not a character's tone has any impact on it's recognizability or lexical decision reaction time.
+Using a lexical decision task, where participants had to discriminate between real Chinese characters and pseudocharacters via button presses, The "Chinese Lexicon Project" provides a valuable database of behavioral responses (reaction times and accuracy) for lexical processing of single Chinese characters. Through analysis of this study's lexical processing data, as well as an alternative study's data on the frequency of Chinese characters, I hope to answer several questions including (1) the relationship between character frequency and lexical decision reaction times, (2) the relationship between character frequency and respondents' mean accuracy, (3) how various lexical properties of characters (e.g., number of strokes, phonetic/semantic radical, number of meanings, etc.) influence lexical decision latencies, and (4) whether or not a character's tone has any impact on it's recognizability or lexical decision reaction time.
 
 ## Importing Data
 
 ```{r}
 
 library(tidyverse)
+library(tidytext)
 library(ggplot2)
 
 clp_raw <- read_csv("/Users/joshliu/Desktop/LING 343/hp2-joshliu17/data/Chinese Lexicon Project Sze et al.csv")
@@ -25,7 +26,7 @@ frequency_raw <- read_csv("/Users/joshliu/Desktop/LING 343/hp2-joshliu17/data/Ch
 
 ## Data Cleanup
 
-Here, I cleaned up the Chinese Language Database (Frequency) dataset to make it easier to interprt. Specifically, the descriptions of the columns were  in the first row of the data set rather than being the column names, and the number percentages were written with a comma instead of a period. I renamed the columns, removed unnecessary columns, and replaced the commas with periods.
+Here, I cleaned up the Chinese Language Database (Frequency) dataset to make it easier to interprt. Specifically, the descriptions of the columns were in the first row of the data set rather than being the column names, and the number percentages were written with a comma instead of a period. I renamed the columns, removed unnecessary columns, and replaced the commas with periods.
 
 ```{r}
 
@@ -64,7 +65,7 @@ frequency_renamed$Fraction_of_Language <- gsub(",", ".", frequency_renamed$Fract
 Below are the Data Dictionaries for both data sets I will be working with.
 
 | Variable      | Description                                                                                                              |
-|---------------------|---------------------------------------------------|
+|----------------------|-------------------------------------------------|
 | **Character** | the Chinese character in simplified script                                                                               |
 | **Acc**       | mean accuracy                                                                                                            |
 | **Ntrials**   | number of participants whose trials were sufficiently reliable to provide the latencies for that item (maximum being 35) |
@@ -75,7 +76,7 @@ Below are the Data Dictionaries for both data sets I will be working with.
 : Chinese Lexicon Project
 
 | Variable                 | Description                                                                                                                                                                                                 |
-|--------------------------------------|--------------------------------------------------------------|
+|----------------------------|--------------------------------------------|
 | **Frequency**            | frequency ranking (from highest to lowest)                                                                                                                                                                  |
 | **General_Standard_Num** | character's index number according to the Table of General Standard Chinese Characters, the current standard list of 8,105 Chinese characters published by the government of the People's Republic of China |
 | **Radical**              | character's radical, a graphical component of a Chinese character that indicates the character's meaning or pronunciation                                                                                   |
@@ -91,7 +92,9 @@ Below are the Data Dictionaries for both data sets I will be working with.
 
 ## Analysis
 
-To investigate the relationship between character frequency and lexical decision reaction times, I have to combine the two datasets (1) containing the lexical decision times, and (2) containing character frequency, using a join. 
+#### Character Frequency and Lexical Decision Reaction Times
+
+To investigate the relationship between character frequency and lexical decision reaction times, I have to combine the two datasets (1) containing the lexical decision times, and (2) containing character frequency, using a join.
 
 ```{r}
 
@@ -101,7 +104,7 @@ combined_data <- clp_raw %>%
 
 ```
 
-Next, I decided to creat a regression model to view the correlation between the two variables. 
+Next, I decided to creat a regression model to view the correlation between the two variables.
 
 ```{r}
 
@@ -115,9 +118,13 @@ ggplot(combined_data, aes(x = RT, y = Frequency)) +
   geom_smooth()
 
 ```
-The regression model above clearly shows a positive relationship between a character's Mean Response Time and Frequency in the corpus—as a character's frequency ranking rises, it's mean response time among participants also increases. This suggests the less frequent a character is, the less identifiable it is. This notion of recognizability is not a novel discovery, but suggests that the study is accurate in this sense.
 
-But what about accuracy versus frequency?
+The regression model above clearly shows a positive relationship between a character's Mean Response Time and Frequency in the corpus—as a character's frequency ranking increases, it's mean response time among participants also increases. This suggests the less frequent a character is, the longer it takes to identify it.
+
+#### Mean Accuracy Time and Character Frequency
+
+This leads me into my next question, what is the relationship between the frequency of a character and respondents' mean accuracy times?
+
 
 ```{r}
 
@@ -130,34 +137,114 @@ ggplot(combined_data, aes(x = Frequency, y = Acc)) +
 
 ```
 
-The accuracy rating for the first 2000 or so most frequent characters seems to be constant, floating around the 1.00 range, but seems to drop off as characters become less frequent. Perhaps there is a reason certain characters are more frequent than others. 
+The accuracy rating for the first 2000 or so most frequent characters seems to be constant, floating around the 1.00 range, but seems to drop off as characters become less frequent. This shows that there may not be much variability in terms of recognizability until you reach very uncommon characters. 
 
-The Chinese Language Database (Frequency) provides lots of useful lexical properties of characters such as radical, semantic meaning, stroke count, and tone. This information is especially helpful when paired with the data gathered from the Chinese Lexicon Project. We have found that less common characters resulted in slower response times in the study. Furhter, perhaps the complexity of a character also influences respondent's response times. 
+#### Stroke Counts and Recognizability
+
+The Chinese Language Database (Frequency) provides lots of useful lexical properties of characters such as radical, semantic meaning, stroke count, and tone. This information is especially helpful when paired with the data gathered from the Chinese Lexicon Project. In this dataset, a character's stroke count can range anywhere from 1-24 strokes, becoming more intricate and complex the more strokes used. Perhaps, the complexity produced by higher stroke counts contributed to the response times of individuals in the study. To investigate this, I created 3 tables. 
+
+The first shows lowest 5 stroke counts, 2-6, and the average response time across all characters with that stroke count. 
 
 ```{r}
 
+#table showing characters with less than 6 stroke counts and their average response times
 combined_data %>%
-  filter(Stroke_Count > "5") %>%
-  ggplot(aes(x = Stroke_Count, y = Frequency)) +
-  geom_point()
-  
-combined_data %>%
-  filter(Stroke_Count < "19") %>%
-  ggplot(aes(x = Stroke_Count, y = Frequency)) +
-  geom_point() 
-
+  group_by(Stroke_Count) %>%
+  filter(Stroke_Count < 7) %>%
+  summarize(
+    mean(RT)
+  )
 
 ```
 
+The second shows highest 5 stroke counts, 20-24, and the average response time across all characters with that stroke count. 
 
+```{r}
+#table showing characters with more than 19 stroke counts and their average response times
+combined_data %>%
+  group_by(Stroke_Count) %>%
+  filter(Stroke_Count > 19) %>%
+  summarize(
+    mean(RT)
+  )
+```
 
+This final table is a preview of all stroke counts and their means, 
 
+```{r}
+#table showing stroke counts and their means arranged from slowest to fastest response time
+stroke_table <- combined_data %>%
+  group_by(Stroke_Count) %>%
+  summarize(
+    mean(RT)
+  ) %>%
+  rename(Mean = "mean(RT)") %>%
+  rename(StrokeCount = "Stroke_Count") %>%
+  arrange(desc(Mean))
+  
+head(stroke_table)
+```
 
+Finally, this graph visualizes the positive correlation between stroke count and response time. 
 
+```{r}
 
+ggplot(stroke_table, aes(x = StrokeCount, Mean)) +
+  geom_point()+
+  labs(title = "Stroke Count vs. Response Time",
+       x = "Stroke Count",
+       y = "Response Time") +
+  geom_smooth()
 
+```
 
+In conclusion, the analysis of response times in relation to the number of strokes in Chinese characters indicates a clear trend: as the number of strokes increases, response times tend to be slower. This finding suggests that the complexity of a character, as indicated by the number of strokes, may impact the time required for recognition. Further research could delve deeper into the specific aspects of character complexity that contribute to this effect, offering valuable insights into visual processing in Chinese language tasks.
 
+#### Character Tones and Recognizability
 
+Finally, I wanted to investigate if certain tones were more commonly seen in the Chinese language than other and whether or not tone had an impact on respondents' recognizability of a character. 
+
+```{r}
+
+clean_combined <- na.omit(combined_data)
+#did this because there was a bar appearing for "NA"
+
+clean_combined %>%
+  ggplot(aes(x = Tone)) +
+  geom_bar(aes(fill = Tone)) +
+  labs(
+    Title = "Tone Frequency in Chinese Language",
+    x = "Tone",
+    y = "Count"
+  )
+
+#tried my best to rearrange the bars to go from neutral to fourth tone in numerical order but could not figure it out
+
+```
+
+From this bar graph we can see that there definitely is some varability in terms of tone distribution across the Chinese language. The more important question, however, is does the tone of a character influence it's recognizability? To investigate this, I created a table that produced the mean response times and mean accuracy rates for each tone group. 
+
+```{r}
+
+tone_means <- clean_combined %>%
+  group_by(Tone) %>%
+  summarise(
+    mean(RT), 
+    mean(Acc)
+  )
+
+tone_means
+
+```
+
+From this table we can see that there is not much difference in mean response time nor accuracy rates across the 5 tones. There is a slightly faster average response time for characters with a neutral tone, which could be due to the fact that traditionally, characters with a netural tone are filler words, particle words, and sounds—all of which appear frequently in the Chinese language. However, considering the Chinese Language project solely focused on visual recognition of Chinese characters, it makes sense that there would not be much variation. It would be interesting to conduct a study about the auditory recognizability of Chinese characters. 
+
+## Results and Conclusion
+
+In conclusion, the analysis of the "Chinese Lexicon Project" and additional data on the frequency of Chinese characters provides valuable insights into the lexical processing of single Chinese characters. The investigation into the relationship between character frequency and lexical decision reaction times reveals a clear positive correlation, indicating that less frequent characters take longer to identify. Similarly, the examination of character frequency and respondents' mean accuracy suggests that while the recognizability of the most frequent characters remains high, it decreases as characters become less frequent.
+
+Furthermore, the analysis of lexical properties such as stroke count reveals that characters with higher stroke counts tend to have longer response times, possibly due to their increased complexity. However, the study does not find significant differences in response times or accuracy rates based on the tone of a character, indicating that tone may not have a significant impact on visual recognizability.
+
+Overall, this study highlights the importance of considering various lexical properties in understanding the lexical processing of Chinese characters and opens up avenues for further research, such as exploring the auditory recognizability of Chinese characters.
 
 
